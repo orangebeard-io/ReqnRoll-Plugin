@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net47</TargetFrameworks>
+    <PackageId>Orangebeard.Reqnroll</PackageId>
+    <Version>1.0.0</Version>
+    
+    <Description>Plugin to output Reqnroll test logging into Orangebeard</Description>
+    <Authors>Team Soju</Authors>
+    <PackageTags>orangebeard specflow logging testresults</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>beard.png</PackageIcon>
+    <PackageProjectUrl>https://orangebeard.io</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/orangebeard-io/ReqnRoll-Plugin</RepositoryUrl>
+
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    <Company>Orangebeard.io</Company>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <AssemblyName>Orangebeard.ReqnrollPlugin</AssemblyName>
+
+    <RootNamespace>Orangebeard.ReqnrollPlugin</RootNamespace>
+
+    <Title>Orangebeard ReqnRoll Plugin </Title>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net462|AnyCPU'">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net462|AnyCPU'">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.1|AnyCPU'">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.1|AnyCPU'">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp3.1|AnyCPU'">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Orangebeard.Client" Version="3.0.0.6" />
+    <PackageReference Include="Reqnroll" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\beard.png" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+</Project>
