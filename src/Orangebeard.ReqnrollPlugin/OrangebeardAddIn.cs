@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Orangebeard.Client.V3.ClientUtils.Logging;
 using Orangebeard.ReqnrollPlugin.EventArguments;
 using Orangebeard.ReqnrollPlugin.LogHandler;
@@ -10,13 +10,20 @@ namespace Orangebeard.ReqnrollPlugin
     public class OrangebeardAddIn
     {
         private static readonly ILogger Logger = LogManager.Instance.GetLogger<OrangebeardAddIn>();
-        private static ConcurrentDictionary<FeatureInfo, Guid> Suites { get; } = new ConcurrentDictionary<FeatureInfo, Guid>(new FeatureInfoEqualityComparer());
-        private static ConcurrentDictionary<FeatureInfo, int> SuiteThreadCount { get; } = new ConcurrentDictionary<FeatureInfo, int>(new FeatureInfoEqualityComparer());
-        private static ConcurrentDictionary<ScenarioInfo, Guid> Tests { get; } = new ConcurrentDictionary<ScenarioInfo, Guid>();
-        private static ConcurrentDictionary<StepInfo, Guid> Steps { get; } = new ConcurrentDictionary<StepInfo, Guid>();
+
+        private static Dictionary<FeatureInfo, Guid> Suites { get; } =
+            new Dictionary<FeatureInfo, Guid>(new FeatureInfoEqualityComparer());
+
+        private static Dictionary<FeatureInfo, int> SuiteThreadCount { get; } =
+            new Dictionary<FeatureInfo, int>(new FeatureInfoEqualityComparer());
+
+        private static Dictionary<ScenarioInfo, Guid> Tests { get; } =
+            new Dictionary<ScenarioInfo, Guid>();
+
+        private static Dictionary<StepInfo, Guid> Steps { get; } = new Dictionary<StepInfo, Guid>();
 
         // key: log scope ID, value: according test reporter
-        public static ConcurrentDictionary<string, Guid> LogScopes { get; } = new ConcurrentDictionary<string, Guid>();
+        public static Dictionary<string, Guid> LogScopes { get; } = new Dictionary<string, Guid>();
 
         public static Guid? GetCurrentFeatureGuid(FeatureContext context)
         {
@@ -34,10 +41,10 @@ namespace Orangebeard.ReqnrollPlugin
             SuiteThreadCount[context.FeatureInfo] = 1;
         }
 
-        internal static void RemoveFeatureGuid(FeatureContext context, Guid guid)
+        internal static void RemoveFeatureGuid(FeatureContext context)
         {
-            Suites.TryRemove(context.FeatureInfo, out guid);
-            SuiteThreadCount.TryRemove(context.FeatureInfo, out var count);
+            Suites.Remove(context.FeatureInfo);
+            SuiteThreadCount.Remove(context.FeatureInfo);
         }
 
         internal static int IncrementFeatureThreadCount(FeatureContext context)
@@ -46,20 +53,17 @@ namespace Orangebeard.ReqnrollPlugin
                 = SuiteThreadCount.TryGetValue(context.FeatureInfo, out var value) ? value + 1 : 1;
         }
 
-        internal static int DecrementFeatureThreadCount(FeatureContext context)
-        {
-            return SuiteThreadCount[context.FeatureInfo]
-                = SuiteThreadCount.TryGetValue(context.FeatureInfo, out var value) ? value - 1 : 0;
-        }
-
         public static Guid GetScenarioGuid(ScenarioContext context)
         {
-            if (context != null && Tests.TryGetValue(context.ScenarioInfo, out var reporter))
+            if (context != null && Tests.TryGetValue(context.ScenarioInfo, out var scenarioGuid))
             {
-                return reporter;
+                return scenarioGuid;
             }
 
-            throw new InvalidContextException("No scenario started.");
+            var msg = context == null
+                ? "No ScenarioContext!"
+                : "Test not found for Scenario: " + context.ScenarioInfo.Title;
+            throw new InvalidContextException(msg);
         }
 
         internal static void SetScenarioGuid(ScenarioContext context, Guid guid)
@@ -67,18 +71,18 @@ namespace Orangebeard.ReqnrollPlugin
             Tests[context.ScenarioInfo] = guid;
         }
 
-        internal static void RemoveScenarioGuid(ScenarioContext context, Guid guid)
+        internal static void RemoveScenarioGuid(ScenarioContext context)
         {
-            Tests.TryRemove(context.ScenarioInfo, out guid);
+            Tests.Remove(context.ScenarioInfo);
         }
 
         public static Guid? GetStepGuid(ScenarioStepContext context)
         {
-            if (context != null && Steps.TryGetValue(context.StepInfo, out var reporter))
+            if (context != null && Steps.TryGetValue(context.StepInfo, out var stepGuid))
             {
-                return reporter;
+                return stepGuid;
             }
-            
+
             return null;
         }
 
@@ -87,9 +91,9 @@ namespace Orangebeard.ReqnrollPlugin
             Steps[context.StepInfo] = guid;
         }
 
-        internal static void RemoveStepGuid(ScenarioStepContext context, Guid guid)
+        internal static void RemoveStepGuid(ScenarioStepContext context)
         {
-            Steps.TryRemove(context.StepInfo, out guid);
+            Steps.Remove(context.StepInfo);
         }
 
         public delegate void InitializingHandler(object sender, InitializingEventArgs e);
@@ -310,8 +314,8 @@ namespace Orangebeard.ReqnrollPlugin
                 Logger.Error($"Exception occured in {nameof(OnAfterStepFinished)} event handler: {exp}");
             }
         }
-        
-        internal static (Guid testrun, Guid test, Guid? step) GetCurrentContext()
+
+        public static (Guid testrun, Guid test, Guid? step) GetCurrentContext()
         {
             var testRun = OrangebeardHooks.GetTestRunGuid();
             var currentTest = GetScenarioGuid(ContextHandler.ActiveScenarioContext);

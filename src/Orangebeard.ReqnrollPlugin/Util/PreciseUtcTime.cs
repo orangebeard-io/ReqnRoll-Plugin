@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Orangebeard.ReqnrollPlugin.Util
 {
-    public class PreciseUtcTime
+    public static class PreciseUtcTime
     {
         private static readonly Stopwatch Stopwatch = new Stopwatch();
         private static DateTime _startTime;

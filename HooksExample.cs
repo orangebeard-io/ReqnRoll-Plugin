@@ -1,14 +1,14 @@
 ﻿using Orangebeard.Client.Abstractions.Models;
 using Orangebeard.Client.Abstractions.Responses;
 using Orangebeard.Shared;
-using Orangebeard.SpecFlowPlugin;
-using Orangebeard.SpecFlowPlugin.EventArguments;
+using Orangebeard.ReqnrollPlugin;
+using Orangebeard.ReqnrollPlugin.EventArguments;
 using System;
 using System.IO;
 using System.Reflection;
-using TechTalk.SpecFlow;
+using Reqnroll;
 
-namespace Example.SpecFlow.Hooks
+namespace Example.ReqnRoll.Hooks
 {
     [Binding]
     public sealed class HooksExample
@@ -28,58 +28,20 @@ namespace Example.SpecFlow.Hooks
 
         private static void OrangebeardAddIn_BeforeRunStarted(object sender, RunStartedEventArgs e)
         {
-            e.StartLaunchRequest.Description = $"OS: {Environment.OSVersion.VersionString}";
+            e.StartTestRunRequest.Description = $"OS: {Environment.OSVersion.VersionString}";
         }
-
-        private static void OrangebeardAddIn_BeforeScenarioFinished(object sender, TestItemFinishedEventArgs e)
-        {
-            if (e.ScenarioContext.TestError != null && e.ScenarioContext.ScenarioInfo.Title == "System Error")
-            {
-                e.FinishTestItemRequest.Issue = new Issue
-                {
-                    Type = DefaultIssueType.SystemIssue,
-                    Comment = "my custom system error comment"
-                };
-            }
-            // Add message to defect comment
-            else if (e.ScenarioContext.TestError != null)
-            {
-                e.FinishTestItemRequest.Issue = new Issue
-                {
-                    Type = DefaultIssueType.ToInvestigate,
-                    Comment = e.ScenarioContext.TestError.Message
-                };
-            }
-        }
-
-        private static void OrangebeardAddIn_BeforeFeatureStarted(object sender, TestItemStartedEventArgs e)
+        
+        private static void OrangebeardAddIn_BeforeFeatureStarted(object sender, SuiteStartedEventArgs e)
         {
             // Adding feature tag on runtime
-            e.StartTestItemRequest.Attributes.Add(new ItemAttribute { Value = "runtime_feature_tag" });
+            e.StartSuiteRequest.Attributes.Add(new ItemAttribute { Value = "runtime_feature_tag" });
         }
 
-        private static void OrangebeardAddIn_BeforeScenarioStarted(object sender, TestItemStartedEventArgs e)
+        private static void OrangebeardAddIn_BeforeScenarioStarted(object sender, TestStartedEventArgs e)
         {
             // Adding scenario tag on runtime
-            e.StartTestItemRequest.Attributes.Add(new ItemAttribute { Value = "runtime_scenario_tag" });
+            e.StartTestRequest.Attributes.Add(new ItemAttribute { Value = "runtime_scenario_tag" });
         }
-
-        [AfterScenario]
-        public void AfterScenario(ScenarioContext context)
-        {
-            if (context.ScenarioExecutionStatus == ScenarioExecutionStatus.TestError)
-            {
-                var filePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\cat.png";
-                Context.Current.Log.Debug("This cat came from AfterScenario hook {rp#file#" + filePath + "}");
-            }
-        }
-
-        private static void OrangebeardAddIn_AfterFeatureFinished(object sender, TestItemFinishedEventArgs e)
-        {
-#if NETCOREAPP
-            // Workaround how to avoid issue https://github.com/techtalk/SpecFlow/issues/1348 (launch doesn't finish on .netcore tests)
-            e.TestReporter.FinishTask.Wait();
-#endif
-        }
+        
     }
 }

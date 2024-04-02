@@ -31,7 +31,7 @@
 ## Install
  * Reference the Plugin in your Solution, make sure it is copied to your output directory (You can find the Plugin on Nuget!)
  * Optional: Add hooks file for custom runtime hooks (see HooksExample.cs)
- * create Orangebeard.config.json (and set it to copy to output dir):
+ * create orangebeard.json (and set it to copy to output dir):
 
 ```json
 {
@@ -47,8 +47,7 @@
     "name": "Test run name",
     "description": "test run description",
     "attributes": [ "tag1", "somekey:somevalue" ]
-  },
-  "rootNamespaces": [ "OptionalRootNameSpace" ]
+  }
 }
 
 ```

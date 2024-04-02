@@ -53,7 +53,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Orangebeard.Client" Version="3.0.1" />
+    <PackageReference Include="Orangebeard.Client" Version="3.0.5" />
     <PackageReference Include="Reqnroll" Version="1.0.0" />
   </ItemGroup>
 
