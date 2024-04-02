@@ -34,7 +34,7 @@ namespace Orangebeard.ReqnrollPlugin
         {
             return _client;
         }
-        
+
         internal static Guid GetTestRunGuid()
         {
             return _testrunGuid;
@@ -122,32 +122,27 @@ namespace Orangebeard.ReqnrollPlugin
                 {
                     var currentFeature = OrangebeardAddIn.GetCurrentFeatureGuid(featureContext);
 
-                    if (currentFeature == null)
+                    if (currentFeature != null) return;
+
+                    var startSuite = new StartSuite()
                     {
-                        var startSuite = new StartSuite()
-                        {
-                            TestRunUUID = _testrunGuid,
-                            Description = featureContext.FeatureInfo.Description,
-                            Attributes = new HashSet<Attribute>(featureContext.FeatureInfo.Tags
-                                ?.Select(t => new Attribute() { Value = t }) ?? new HashSet<Attribute>()),
-                            SuiteNames = new[] { featureContext.FeatureInfo.Title },
-                        };
+                        TestRunUUID = _testrunGuid,
+                        Description = featureContext.FeatureInfo.Description,
+                        Attributes = new HashSet<Attribute>(featureContext.FeatureInfo.Tags
+                            ?.Select(t => new Attribute() { Value = t }) ?? new HashSet<Attribute>()),
+                        SuiteNames = new[] { featureContext.FeatureInfo.Title },
+                    };
 
-                        var eventArg = new SuiteStartedEventArgs(_client, startSuite);
-                        OrangebeardAddIn.OnBeforeFeatureStarted(null, eventArg);
+                    var eventArg = new SuiteStartedEventArgs(_client, startSuite);
+                    OrangebeardAddIn.OnBeforeFeatureStarted(null, eventArg);
 
-                        if (eventArg.Canceled) return;
+                    if (eventArg.Canceled) return;
 
-                        currentFeature = _client.StartSuite(startSuite)[0];
-                        OrangebeardAddIn.SetFeatureGuid(featureContext, currentFeature.Value);
+                    currentFeature = _client.StartSuite(startSuite)[0];
+                    OrangebeardAddIn.SetFeatureGuid(featureContext, currentFeature.Value);
 
-                        OrangebeardAddIn.OnAfterFeatureStarted(null,
-                            new SuiteStartedEventArgs(_client, startSuite));
-                    }
-                    else
-                    {
-                        OrangebeardAddIn.IncrementFeatureThreadCount(featureContext);
-                    }
+                    OrangebeardAddIn.OnAfterFeatureStarted(null,
+                        new SuiteStartedEventArgs(_client, startSuite));
                 }
             }
             catch (Exception exp)
@@ -164,8 +159,7 @@ namespace Orangebeard.ReqnrollPlugin
                 lock (LockHelper.GetLock(
                           FeatureInfoEqualityComparer.GetFeatureInfoHashCode(featureContext.FeatureInfo)))
                 {
-                    var currentFeature = OrangebeardAddIn.GetCurrentFeatureGuid(featureContext);
-                    OrangebeardAddIn.RemoveFeatureGuid(featureContext, currentFeature.Value);
+                    OrangebeardAddIn.RemoveFeatureGuid(featureContext);
                 }
             }
             catch (Exception exp)
@@ -284,7 +278,7 @@ namespace Orangebeard.ReqnrollPlugin
             try
             {
                 var currentScenario = OrangebeardAddIn.GetScenarioGuid(this.ScenarioContext);
-                
+
                 if (this.ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.UndefinedStep)
                 {
                     _ = _client.Log(new Log
@@ -298,12 +292,14 @@ namespace Orangebeard.ReqnrollPlugin
                     });
                 }
 
-                var status = ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.OK
-                    ? TestStatus.PASSED
-                    : ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.Skipped ||
-                      ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.UndefinedStep
-                        ? TestStatus.SKIPPED
-                        : TestStatus.FAILED;
+                TestStatus status;
+                if (ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.OK)
+                    status = TestStatus.PASSED;
+                else if (ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.Skipped ||
+                         ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.UndefinedStep)
+                    status = TestStatus.SKIPPED;
+                else
+                    status = TestStatus.FAILED;
 
                 var finishTest = new FinishTest
                 {
@@ -322,7 +318,7 @@ namespace Orangebeard.ReqnrollPlugin
                 OrangebeardAddIn.OnAfterScenarioFinished(this,
                     new TestFinishedEventArgs(currentScenario, _client, finishTest));
 
-                OrangebeardAddIn.RemoveScenarioGuid(this.ScenarioContext, currentScenario);
+                OrangebeardAddIn.RemoveScenarioGuid(this.ScenarioContext);
             }
             catch (Exception exp)
             {
@@ -435,8 +431,8 @@ namespace Orangebeard.ReqnrollPlugin
 
                 if (eventArg.Canceled) return;
                 _client.FinishStep(currentStep.Value, finishStep);
-               
-                OrangebeardAddIn.RemoveStepGuid(this.StepContext, currentStep.Value);
+
+                OrangebeardAddIn.RemoveStepGuid(StepContext);
                 OrangebeardAddIn.OnAfterStepFinished(this, eventArg);
             }
             catch (Exception exp)

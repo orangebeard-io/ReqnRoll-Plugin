@@ -31,10 +31,10 @@ namespace Orangebeard.ReqnrollPlugin
             _baseHelper.AddAttachment(filePath);
         }
 
-        public void WriteLine(string text)
+        public void WriteLine(string message)
         {
-            SendLog(text);
-            _baseHelper.WriteLine(text);
+            SendLog(message);
+            _baseHelper.WriteLine(message);
         }
 
         public void WriteLine(string format, params object[] args)
@@ -88,6 +88,10 @@ namespace Orangebeard.ReqnrollPlugin
         {
             var context = OrangebeardAddIn.GetCurrentContext();
             if (attachment == null) return;
+            if (message == null)
+            {
+                message = "Attachment: " + attachment.Name;
+            }
 
             var logItem = SendLog(message, LogLevel.INFO);
 
