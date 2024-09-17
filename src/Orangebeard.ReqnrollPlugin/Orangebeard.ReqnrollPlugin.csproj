@@ -54,12 +54,12 @@
 
   <ItemGroup>
     <PackageReference Include="Orangebeard.Client" Version="3.0.5" />
-    <PackageReference Include="Reqnroll" Version="1.0.0" />
+    <PackageReference Include="Reqnroll" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\beard.png" Pack="true" PackagePath="\" Visible="false" />
-    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
