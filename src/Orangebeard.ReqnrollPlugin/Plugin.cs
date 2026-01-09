@@ -1,5 +1,5 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using System.Reflection;
 using Orangebeard.Client.V3.ClientUtils.Logging;
 using Orangebeard.Client.V3.OrangebeardConfig;
 using Orangebeard.ReqnrollPlugin;
@@ -26,7 +26,7 @@ namespace Orangebeard.ReqnrollPlugin
 
         public void Initialize(RuntimePluginEvents runtimePluginEvents, RuntimePluginParameters runtimePluginParameters, UnitTestProviderConfiguration unitTestProviderConfiguration)
         {
-            var currentDirectory = Path.GetDirectoryName(new Uri(typeof(Plugin).Assembly.CodeBase).LocalPath);
+            var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             _logger = LogManager.Instance.WithBaseDir(currentDirectory).GetLogger<Plugin>();
 
