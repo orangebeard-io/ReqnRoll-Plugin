@@ -49,12 +49,13 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Bump patch version for next dev cycle
-        uses: DOMZE/dotnet-version-bump@v3
+      - name: Bump patch version
+        id: bump_version
+        uses: Thundernerd/dotnet-project-version-updater@v1.2
         with:
-          project-file: src/Orangebeard.ReqnrollPlugin/Orangebeard.ReqnrollPlugin.csproj
-          bump-type: patch
-
+          file: "src/Orangebeard.ReqnrollPlugin/Orangebeard.ReqnrollPlugin.csproj"
+          version: bump-build 
+     
       - name: Commit and push version bump
         run: |
           git config --global user.name 'github-actions[bot]'
