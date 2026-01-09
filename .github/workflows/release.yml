@@ -36,24 +36,24 @@ jobs:
       - name: Pack
         run: dotnet pack src/Orangebeard.ReqnrollPlugin/Orangebeard.ReqnrollPlugin.csproj --configuration Release -o ./packages
 
-      - name: Publish to NuGet
-        run: dotnet nuget push "./packages/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json"
+      # - name: Publish to NuGet
+      #   run: dotnet nuget push "./packages/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json"
 
-      - name: Create Release and Tag
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.get_version.outputs.version }}
-          name: "Release v${{ steps.get_version.outputs.version }}"
-          body: "Release of version ${{ steps.get_version.outputs.version }}"
-          files: "./packages/*.nupkg"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install dotnet-version tool
-        run: dotnet tool install --global dotnet-version
+      # - name: Create Release and Tag
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     tag_name: v${{ steps.get_version.outputs.version }}
+      #     name: "Release v${{ steps.get_version.outputs.version }}"
+      #     body: "Release of version ${{ steps.get_version.outputs.version }}"
+      #     files: "./packages/*.nupkg"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bump patch version for next dev cycle
-        run: dotnet-version src/Orangebeard.ReqnrollPlugin/Orangebeard.ReqnrollPlugin.csproj --patch
+        uses: DOMZE/dotnet-version-bump@v3
+        with:
+          project-file: src/Orangebeard.ReqnrollPlugin/Orangebeard.ReqnrollPlugin.csproj
+          bump-type: patch
 
       - name: Commit and push version bump
         run: |
