@@ -5,6 +5,9 @@ using Orangebeard.Client.V3.OrangebeardConfig;
 using Orangebeard.ReqnrollPlugin;
 using Reqnroll;
 using Reqnroll.Bindings;
+using Reqnroll.Configuration;
+using Reqnroll.ErrorHandling;
+using Reqnroll.EnvironmentAccess;
 using Reqnroll.Infrastructure;
 using Reqnroll.Plugins;
 using Reqnroll.UnitTestProvider;
@@ -36,7 +39,13 @@ namespace Orangebeard.ReqnrollPlugin
             runtimePluginEvents.CustomizeGlobalDependencies += (sender, e) =>
             {
                 e.ReqnrollConfiguration.AdditionalStepAssemblies.Add("Orangebeard.ReqnrollPlugin");
-                e.ObjectContainer.RegisterTypeAs<SafeBindingInvoker, IAsyncBindingInvoker>();
+                e.ObjectContainer.RegisterFactoryAs<IAsyncBindingInvoker>(c => 
+                    new SafeBindingInvoker(
+                        c.Resolve<ReqnrollConfiguration>(),
+                        c.Resolve<IErrorProvider>(),
+                        c.Resolve<IBindingDelegateInvoker>(),
+                        c.Resolve<IEnvironmentOptions>()
+                    ));
                 e.ObjectContainer.RegisterTypeAs<OrangebeardOutputHelper, IReqnrollOutputHelper>();
             };
 

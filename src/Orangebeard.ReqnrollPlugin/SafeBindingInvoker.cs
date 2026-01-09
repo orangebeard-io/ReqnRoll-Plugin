@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 using Reqnroll;
 using Reqnroll.Bindings;
 using Reqnroll.Configuration;
 using Reqnroll.ErrorHandling;
+using Reqnroll.EnvironmentAccess;
 using Reqnroll.Infrastructure;
 using Reqnroll.Tracing;
 
@@ -12,57 +14,42 @@ namespace Orangebeard.ReqnrollPlugin
 {
     internal class SafeBindingInvoker : BindingInvoker
     {
-        public SafeBindingInvoker(ReqnrollConfiguration reqnrollConfiguration, IErrorProvider errorProvider, IBindingDelegateInvoker synchronousBindingDelegateInvoker)
-            : base(reqnrollConfiguration, errorProvider, synchronousBindingDelegateInvoker)
+        public SafeBindingInvoker(ReqnrollConfiguration reqnrollConfiguration, IErrorProvider errorProvider, IBindingDelegateInvoker synchronousBindingDelegateInvoker, IEnvironmentOptions environmentOptions)
+            : base(reqnrollConfiguration, errorProvider, synchronousBindingDelegateInvoker, environmentOptions)
         {
         }
 
-        [Obsolete("Use async version of the method instead")]
-        public override object InvokeBinding(IBinding binding, IContextManager contextManager, object[] arguments,
-            ITestTracer testTracer, out TimeSpan duration)
+        public override async Task<object> InvokeBindingAsync(IBinding binding, IContextManager contextManager, object[] arguments, ITestTracer testTracer, DurationHolder durationHolder)
         {
             object result = null;
 
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             try
             {
-                result = base.InvokeBinding(binding, contextManager, arguments,
-                    testTracer, out duration);
+                result = await base.InvokeBindingAsync(binding, contextManager, arguments, testTracer, durationHolder);
             }
             catch (Exception ex)
             {
                 PreserveStackTrace(ex);
 
-                if (binding is IHookBinding == false)
+                if (!(binding is IHookBinding hookBinding))
                 {
                     throw;
                 }
 
-                var hookBinding = (IHookBinding)binding;
-
                 if (hookBinding.HookType == HookType.BeforeScenario
                     || hookBinding.HookType == HookType.BeforeScenarioBlock
-                    || hookBinding.HookType == HookType.BeforeScenario
                     || hookBinding.HookType == HookType.BeforeStep
                     || hookBinding.HookType == HookType.AfterStep
                     || hookBinding.HookType == HookType.AfterScenario
                     || hookBinding.HookType == HookType.AfterScenarioBlock)
                 {
-                    stopwatch.Stop();
-
-                    duration = stopwatch.Elapsed;
-
-                    testTracer.TraceError(ex, duration);
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    // we don't have access to the stopwatch from the base method, so we can't get the real duration.
+                    // this is a limitation of the new Reqnroll version.
+                    testTracer.TraceError(ex, stopwatch.Elapsed);
                     SetTestError(contextManager.ScenarioContext, ex);
                 }
-            }
-            finally
-            {
-                stopwatch.Stop();
-
-                duration = stopwatch.Elapsed;
             }
 
             return result;

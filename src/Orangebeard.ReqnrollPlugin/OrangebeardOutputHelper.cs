@@ -19,10 +19,11 @@ namespace Orangebeard.ReqnrollPlugin
         private const string FilePathPattern = @"((((?<!\w)[A-Z,a-z]:)|(\.{0,2}\\))([^\b%\/\|:\n<>""']*))";
 
         public OrangebeardOutputHelper(ITestThreadExecutionEventPublisher testThreadExecutionEventPublisher,
-            ITraceListener traceListener, IReqnrollAttachmentHandler reqnrollAttachmentHandler)
+            ITraceListener traceListener, IReqnrollAttachmentHandler reqnrollAttachmentHandler,
+            IContextManager contextManager)
         {
             _baseHelper = new ReqnrollOutputHelper(testThreadExecutionEventPublisher, traceListener,
-                reqnrollAttachmentHandler);
+                reqnrollAttachmentHandler, contextManager);
         }
 
         public void AddAttachment(string filePath)

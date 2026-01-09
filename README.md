@@ -22,6 +22,9 @@
   </h4>
 </div>
 
+## Compatibility
+Version 3.x.x plugin is compatible with ReqnRoll 3.x only. If you are on Reqnroll 2.x, use v1.x of the plugin.
+
 ## Build
  * Clone this repository
  * Open in a .Net IDE
