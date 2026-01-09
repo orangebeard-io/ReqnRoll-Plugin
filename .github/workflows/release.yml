@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,7 +16,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' # Use a specific .NET version
+          dotnet-version: '8.0.x'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -35,7 +35,7 @@ jobs:
           WITH_V: true
 
       - name: Pack
-        run: dotnet pack --configuration Release /p:Version=${{ steps.bump-version.outputs.new_tag }} -o ./packages
+        run: dotnet pack src/Orangebeard.ReqnrollPlugin/Orangebeard.ReqnrollPlugin.csproj --configuration Release /p:Version=${{ steps.bump-version.outputs.tag }} -o ./packages
 
       - name: Publish to NuGet
         run: dotnet nuget push "./packages/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json"

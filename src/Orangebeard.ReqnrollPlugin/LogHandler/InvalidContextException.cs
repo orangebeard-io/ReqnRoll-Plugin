@@ -14,8 +14,5 @@ namespace Orangebeard.ReqnrollPlugin.LogHandler
         public InvalidContextException(string message, Exception innerException) : base(message, innerException)
         {
         }
-        public InvalidContextException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 }
