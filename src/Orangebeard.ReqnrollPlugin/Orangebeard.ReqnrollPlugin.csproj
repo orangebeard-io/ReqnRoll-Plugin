@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
     <PackageId>Orangebeard.Reqnroll</PackageId>
-    <Version>3.0.0</Version>
+    <Version>3.0.1</Version>
     
     <Description>Plugin to output Reqnroll test logging into Orangebeard</Description>
     <Authors>Team Soju</Authors>
