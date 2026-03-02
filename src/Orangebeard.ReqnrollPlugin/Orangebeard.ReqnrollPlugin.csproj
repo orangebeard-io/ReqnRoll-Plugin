@@ -29,7 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Orangebeard.Client" Version="3.0.5" />
+    <PackageReference Include="Orangebeard.Client" Version="3.1.0" />
     <PackageReference Include="Reqnroll" Version="3.3.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
   </ItemGroup>

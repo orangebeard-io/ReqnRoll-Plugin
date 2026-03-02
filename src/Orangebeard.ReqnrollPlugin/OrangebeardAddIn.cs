@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Orangebeard.Client.V3.ClientUtils.Logging;
 using Orangebeard.ReqnrollPlugin.EventArguments;
 using Orangebeard.ReqnrollPlugin.LogHandler;
@@ -11,19 +11,19 @@ namespace Orangebeard.ReqnrollPlugin
     {
         private static readonly ILogger Logger = LogManager.Instance.GetLogger<OrangebeardAddIn>();
 
-        private static Dictionary<FeatureInfo, Guid> Suites { get; } =
-            new Dictionary<FeatureInfo, Guid>(new FeatureInfoEqualityComparer());
+        private static ConcurrentDictionary<FeatureInfo, Guid> Suites { get; } =
+            new ConcurrentDictionary<FeatureInfo, Guid>(new FeatureInfoEqualityComparer());
 
-        private static Dictionary<FeatureInfo, int> SuiteThreadCount { get; } =
-            new Dictionary<FeatureInfo, int>(new FeatureInfoEqualityComparer());
+        private static ConcurrentDictionary<FeatureInfo, int> SuiteThreadCount { get; } =
+            new ConcurrentDictionary<FeatureInfo, int>(new FeatureInfoEqualityComparer());
 
-        private static Dictionary<ScenarioInfo, Guid> Tests { get; } =
-            new Dictionary<ScenarioInfo, Guid>();
+        private static ConcurrentDictionary<ScenarioInfo, Guid> Tests { get; } =
+            new ConcurrentDictionary<ScenarioInfo, Guid>();
 
-        private static Dictionary<StepInfo, Guid> Steps { get; } = new Dictionary<StepInfo, Guid>();
+        private static ConcurrentDictionary<StepInfo, Guid> Steps { get; } = new ConcurrentDictionary<StepInfo, Guid>();
 
-        // key: log scope ID, value: according test reporter
-        public static Dictionary<string, Guid> LogScopes { get; } = new Dictionary<string, Guid>();
+        // key: log scope ID, value: the according test reporter
+        public static ConcurrentDictionary<string, Guid> LogScopes { get; } = new ConcurrentDictionary<string, Guid>();
 
         public static Guid? GetCurrentFeatureGuid(FeatureContext context)
         {
@@ -37,20 +37,19 @@ namespace Orangebeard.ReqnrollPlugin
 
         internal static void SetFeatureGuid(FeatureContext context, Guid guid)
         {
-            Suites[context.FeatureInfo] = guid;
-            SuiteThreadCount[context.FeatureInfo] = 1;
+            Suites.AddOrUpdate(context.FeatureInfo, guid, (featureInfo, oldGuid) => guid);
+            SuiteThreadCount.AddOrUpdate(context.FeatureInfo, 1, (featureInfo, oldCount) => 1);
         }
 
         internal static void RemoveFeatureGuid(FeatureContext context)
         {
-            Suites.Remove(context.FeatureInfo);
-            SuiteThreadCount.Remove(context.FeatureInfo);
+            Suites.TryRemove(context.FeatureInfo, out _);
+            SuiteThreadCount.TryRemove(context.FeatureInfo, out _);
         }
 
         internal static int IncrementFeatureThreadCount(FeatureContext context)
         {
-            return SuiteThreadCount[context.FeatureInfo]
-                = SuiteThreadCount.TryGetValue(context.FeatureInfo, out var value) ? value + 1 : 1;
+            return SuiteThreadCount.AddOrUpdate(context.FeatureInfo, 1, (featureInfo, value) => value + 1);
         }
 
         public static Guid GetScenarioGuid(ScenarioContext context)
@@ -68,12 +67,12 @@ namespace Orangebeard.ReqnrollPlugin
 
         internal static void SetScenarioGuid(ScenarioContext context, Guid guid)
         {
-            Tests[context.ScenarioInfo] = guid;
+            Tests.AddOrUpdate(context.ScenarioInfo, guid, (scenarioInfo, oldGuid) => guid);
         }
 
         internal static void RemoveScenarioGuid(ScenarioContext context)
         {
-            Tests.Remove(context.ScenarioInfo);
+            Tests.TryRemove(context.ScenarioInfo, out _);
         }
 
         public static Guid? GetStepGuid(ScenarioStepContext context)
@@ -88,12 +87,12 @@ namespace Orangebeard.ReqnrollPlugin
 
         internal static void SetStepGuid(ScenarioStepContext context, Guid guid)
         {
-            Steps[context.StepInfo] = guid;
+            Steps.AddOrUpdate(context.StepInfo, guid, (stepInfo, oldGuid) => guid);
         }
 
         internal static void RemoveStepGuid(ScenarioStepContext context)
         {
-            Steps.Remove(context.StepInfo);
+            Steps.TryRemove(context.StepInfo, out _);
         }
 
         public delegate void InitializingHandler(object sender, InitializingEventArgs e);
