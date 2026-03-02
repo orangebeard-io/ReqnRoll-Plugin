@@ -278,7 +278,7 @@ namespace Orangebeard.ReqnrollPlugin
             }
         }
 
-        [AfterScenario(Order = 20000)]
+        [AfterScenario]
         public void AfterScenario()
         {
             try
@@ -323,17 +323,18 @@ namespace Orangebeard.ReqnrollPlugin
 
                 OrangebeardAddIn.OnAfterScenarioFinished(this,
                     new TestFinishedEventArgs(currentScenario, _client, finishTest));
-
-                OrangebeardAddIn.RemoveScenarioGuid(this.ScenarioContext);
             }
             catch (Exception exp)
             {
                 Logger.Error(exp.ToString());
             }
-            finally
-            {
-                ContextHandler.ActiveScenarioContext = null;
-            }
+        }
+        
+        [AfterScenario(Order = 30000)]
+        public void AfterScenarioTearDown()
+        {
+            OrangebeardAddIn.RemoveScenarioGuid(this.ScenarioContext);
+            ContextHandler.ActiveScenarioContext = null;
         }
 
         [BeforeStep(Order = -20000)]
