@@ -27,6 +27,13 @@ namespace Orangebeard.ReqnrollPlugin
         private static readonly ILogger Logger = LogManager.Instance.GetLogger<OrangebeardHooks>();
         internal static readonly object _clientLock = new object();
 
+        private static readonly HashSet<string> SkippedExceptionTypes = new HashSet<string>
+        {
+            "NUnit.Framework.IgnoreException",
+            "NUnit.Framework.InconclusiveException",
+            "Microsoft.VisualStudio.TestTools.UnitTesting.AssertInconclusiveException"
+        };
+
         private static OrangebeardAsyncV3Client _client;
         private static Guid _testrunGuid;
 
@@ -304,12 +311,19 @@ namespace Orangebeard.ReqnrollPlugin
 
                 TestStatus status;
                 if (ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.OK)
+                {
                     status = TestStatus.PASSED;
-                else if (ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.Skipped ||
-                         ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.UndefinedStep)
-                    status = TestStatus.SKIPPED;
+                }
                 else
-                    status = TestStatus.FAILED;
+                {
+                    var exceptionTypeFullName = ScenarioContext.TestError?.GetType().FullName;
+                    if (ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.Skipped ||
+                        ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.UndefinedStep ||
+                        (exceptionTypeFullName != null && SkippedExceptionTypes.Contains(exceptionTypeFullName)))
+                        status = TestStatus.SKIPPED;
+                    else
+                        status = TestStatus.FAILED;
+                }
 
                 var finishTest = new FinishTest
                 {
