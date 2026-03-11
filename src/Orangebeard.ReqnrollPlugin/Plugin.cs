@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿﻿using System.IO;
 using System.Reflection;
 using Orangebeard.Client.V3.ClientUtils.Logging;
 using Orangebeard.Client.V3.OrangebeardConfig;
@@ -22,22 +22,23 @@ namespace Orangebeard.ReqnrollPlugin
     {
         private ILogger _logger;
 
-        public static IConfiguration Config { get; set; }
-
         public void Initialize(RuntimePluginEvents runtimePluginEvents, RuntimePluginParameters runtimePluginParameters, UnitTestProviderConfiguration unitTestProviderConfiguration)
         {
             var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             _logger = LogManager.Instance.WithBaseDir(currentDirectory).GetLogger<Plugin>();
 
-            Config = new ConfigurationBuilder().AddDefaults(currentDirectory).Build();
+            var config = new ConfigurationBuilder().AddDefaults(currentDirectory).Build();
 
-            var isEnabled = Config.GetValue("Enabled", true);
+            var isEnabled = config.GetValue("Enabled", true);
 
             if (!isEnabled) return;
             
             runtimePluginEvents.CustomizeGlobalDependencies += (sender, e) =>
             {
+                // Register the configuration as a singleton instance for the test run.
+                e.ObjectContainer.RegisterInstanceAs<IConfiguration>(config);
+
                 e.ReqnrollConfiguration.AdditionalStepAssemblies.Add("Orangebeard.ReqnrollPlugin");
                 e.ObjectContainer.RegisterFactoryAs<IAsyncBindingInvoker>(c => 
                     new SafeBindingInvoker(
@@ -46,7 +47,6 @@ namespace Orangebeard.ReqnrollPlugin
                         c.Resolve<IBindingDelegateInvoker>(),
                         c.Resolve<IEnvironmentOptions>()
                     ));
-                e.ObjectContainer.RegisterTypeAs<OrangebeardOutputHelper, IReqnrollOutputHelper>();
             };
 
             runtimePluginEvents.CustomizeScenarioDependencies += (sender, e) =>

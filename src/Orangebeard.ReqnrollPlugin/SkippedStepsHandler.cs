@@ -12,29 +12,41 @@ namespace Orangebeard.ReqnrollPlugin
     {
         public void Handle(ScenarioContext scenarioContext)
         {
-            var context = OrangebeardAddIn.GetCurrentContext();
-
-            var skippedStep = new StartStep
+            try
             {
-                TestRunUUID = context.testrun,
-                TestUUID = context.test,
-                StepName = scenarioContext.StepContext.StepInfo.GetCaption(),
-                StartTime = PreciseUtcTime.UtcNow
-            };
+                var testRunGuid = OrangebeardHooks.GetTestRunGuid();
+                var testGuid = OrangebeardAddIn.GetScenarioGuid(scenarioContext);
+                var stepGuid = OrangebeardAddIn.GetStepGuid(scenarioContext);
 
-            if (context.step.HasValue)
-            {
-                skippedStep.ParentStepUUID = context.step.Value;
+                var skippedStep = new StartStep
+                {
+                    TestRunUUID = testRunGuid,
+                    TestUUID = testGuid,
+                    StepName = scenarioContext.StepContext.StepInfo.GetCaption(),
+                    StartTime = PreciseUtcTime.UtcNow
+                };
+
+                if (stepGuid.HasValue)
+                {
+                    skippedStep.ParentStepUUID = stepGuid.Value;
+                }
+
+                Guid skippedStepGuid;
+                lock (OrangebeardHooks._clientLock)
+                {
+                    skippedStepGuid = OrangebeardHooks.GetClient().StartStep(skippedStep);
+                    OrangebeardHooks.GetClient().FinishStep(skippedStepGuid, new FinishStep
+                    {
+                        TestRunUUID = testRunGuid,
+                        Status = TestStatus.SKIPPED,
+                        EndTime = PreciseUtcTime.UtcNow
+                    });
+                }
             }
-
-            var skippedStepGuid = OrangebeardHooks.GetClient().StartStep(skippedStep);
-            
-            OrangebeardHooks.GetClient().FinishStep(skippedStepGuid, new FinishStep
+            catch (Exception)
             {
-                TestRunUUID = context.testrun,
-                Status = TestStatus.SKIPPED,
-                EndTime = PreciseUtcTime.UtcNow
-            });
+                // Orangebeard context not available; skip reporting
+            }
         }
     }
 }

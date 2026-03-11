@@ -11,19 +11,14 @@ namespace Orangebeard.ReqnrollPlugin
     {
         private static readonly ILogger Logger = LogManager.Instance.GetLogger<OrangebeardAddIn>();
 
+        private const string TestGuidKey = "OrangebeardTestGuid";
+        private const string StepGuidKey = "OrangebeardStepGuid";
+
         private static ConcurrentDictionary<FeatureInfo, Guid> Suites { get; } =
             new ConcurrentDictionary<FeatureInfo, Guid>(new FeatureInfoEqualityComparer());
 
         private static ConcurrentDictionary<FeatureInfo, int> SuiteThreadCount { get; } =
             new ConcurrentDictionary<FeatureInfo, int>(new FeatureInfoEqualityComparer());
-
-        private static ConcurrentDictionary<ScenarioInfo, Guid> Tests { get; } =
-            new ConcurrentDictionary<ScenarioInfo, Guid>();
-
-        private static ConcurrentDictionary<StepInfo, Guid> Steps { get; } = new ConcurrentDictionary<StepInfo, Guid>();
-
-        // key: log scope ID, value: the according test reporter
-        public static ConcurrentDictionary<string, Guid> LogScopes { get; } = new ConcurrentDictionary<string, Guid>();
 
         public static Guid? GetCurrentFeatureGuid(FeatureContext context)
         {
@@ -52,11 +47,16 @@ namespace Orangebeard.ReqnrollPlugin
             return SuiteThreadCount.AddOrUpdate(context.FeatureInfo, 1, (featureInfo, value) => value + 1);
         }
 
+        internal static int DecrementFeatureThreadCount(FeatureContext context)
+        {
+            return SuiteThreadCount.AddOrUpdate(context.FeatureInfo, 0, (featureInfo, value) => value - 1);
+        }
+
         public static Guid GetScenarioGuid(ScenarioContext context)
         {
-            if (context != null && Tests.TryGetValue(context.ScenarioInfo, out var scenarioGuid))
+            if (context != null && context.ContainsKey(TestGuidKey))
             {
-                return scenarioGuid;
+                return (Guid)context[TestGuidKey];
             }
 
             var msg = context == null
@@ -67,32 +67,32 @@ namespace Orangebeard.ReqnrollPlugin
 
         internal static void SetScenarioGuid(ScenarioContext context, Guid guid)
         {
-            Tests.AddOrUpdate(context.ScenarioInfo, guid, (scenarioInfo, oldGuid) => guid);
+            context[TestGuidKey] = guid;
         }
 
         internal static void RemoveScenarioGuid(ScenarioContext context)
         {
-            Tests.TryRemove(context.ScenarioInfo, out _);
+            context.Remove(TestGuidKey);
         }
 
-        public static Guid? GetStepGuid(ScenarioStepContext context)
+        public static Guid? GetStepGuid(ScenarioContext context)
         {
-            if (context != null && Steps.TryGetValue(context.StepInfo, out var stepGuid))
+            if (context != null && context.ContainsKey(StepGuidKey))
             {
-                return stepGuid;
+                return (Guid)context[StepGuidKey];
             }
 
             return null;
         }
 
-        internal static void SetStepGuid(ScenarioStepContext context, Guid guid)
+        internal static void SetStepGuid(ScenarioContext context, Guid guid)
         {
-            Steps.AddOrUpdate(context.StepInfo, guid, (stepInfo, oldGuid) => guid);
+            context[StepGuidKey] = guid;
         }
 
-        internal static void RemoveStepGuid(ScenarioStepContext context)
+        internal static void RemoveStepGuid(ScenarioContext context)
         {
-            Steps.TryRemove(context.StepInfo, out _);
+            context.Remove(StepGuidKey);
         }
 
         public delegate void InitializingHandler(object sender, InitializingEventArgs e);
@@ -314,13 +314,5 @@ namespace Orangebeard.ReqnrollPlugin
             }
         }
 
-        public static (Guid testrun, Guid test, Guid? step) GetCurrentContext()
-        {
-            var testRun = OrangebeardHooks.GetTestRunGuid();
-            var currentTest = GetScenarioGuid(ContextHandler.ActiveScenarioContext);
-            var currentStep = GetStepGuid(ContextHandler.ActiveStepContext);
-
-            return (testRun, test: currentTest, step: currentStep);
-        }
     }
 }
