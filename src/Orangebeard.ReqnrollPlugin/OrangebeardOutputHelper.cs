@@ -94,7 +94,7 @@ namespace Orangebeard.ReqnrollPlugin
             _baseHelper.WriteLine(format, args);
         }
 
-        private static string SafeFormat(string format, object[] args)
+        internal static string SafeFormat(string format, object[] args)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace Orangebeard.ReqnrollPlugin
             }
         }
 
-        private static bool TryExtractBinary(object[] args, out byte[] content, out string fileName, out object[] textArgs)
+        internal static bool TryExtractBinary(object[] args, out byte[] content, out string fileName, out object[] textArgs)
         {
             content = null;
             fileName = null;
@@ -144,7 +144,7 @@ namespace Orangebeard.ReqnrollPlugin
             return true;
         }
 
-        private static string DefaultFileName(string label, byte[] content)
+        internal static string DefaultFileName(string label, byte[] content)
         {
             var baseName = string.IsNullOrWhiteSpace(label) ? "attachment" : label.Trim();
             foreach (var c in Path.GetInvalidFileNameChars()) baseName = baseName.Replace(c, '_');
@@ -155,7 +155,7 @@ namespace Orangebeard.ReqnrollPlugin
             return baseName + (ext ?? ".bin");
         }
 
-        private static string SniffExtension(byte[] c)
+        internal static string SniffExtension(byte[] c)
         {
             if (c == null || c.Length < 4) return null;
             if (c[0] == '%' && c[1] == 'P' && c[2] == 'D' && c[3] == 'F') return ".pdf";
