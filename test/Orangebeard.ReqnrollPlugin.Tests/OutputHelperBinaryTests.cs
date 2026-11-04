@@ -86,9 +86,18 @@ namespace Orangebeard.ReqnrollPlugin.Tests
         }
 
         [Test]
-        public void DefaultFileName_LabelPdf_WithUnknownContent_StillGetsPdfExtension()
+        public void DefaultFileName_LabelNamingAKnownType_IsUsedAsExtension()
         {
+            var text = Encoding.UTF8.GetBytes("{\"a\":1}");
             Assert.That(OrangebeardOutputHelper.DefaultFileName("PDF", new byte[] { 1, 2, 3, 4, 5 }), Is.EqualTo("PDF.pdf"));
+            Assert.That(OrangebeardOutputHelper.DefaultFileName("json", text), Is.EqualTo("json.json"));
+            Assert.That(OrangebeardOutputHelper.DefaultFileName("xml", text), Is.EqualTo("xml.xml"));
+        }
+
+        [Test]
+        public void DefaultFileName_LabelTakesPrecedenceOverSniffedType()
+        {
+            Assert.That(OrangebeardOutputHelper.DefaultFileName("zip", Pdf), Is.EqualTo("zip.zip"));
         }
 
         [Test]

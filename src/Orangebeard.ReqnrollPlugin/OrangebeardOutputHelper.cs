@@ -150,9 +150,12 @@ namespace Orangebeard.ReqnrollPlugin
             foreach (var c in Path.GetInvalidFileNameChars()) baseName = baseName.Replace(c, '_');
             if (!string.IsNullOrEmpty(Path.GetExtension(baseName))) return baseName;
 
-            var ext = SniffExtension(content);
-            if (ext == null && baseName.Equals("pdf", StringComparison.OrdinalIgnoreCase)) ext = ".pdf";
-            return baseName + (ext ?? ".bin");
+            // The label may name the type itself (e.g. "pdf", "json", "xml"); use it if it is a known extension
+            var labelAsExtension = "." + baseName.ToLowerInvariant();
+            if (MimeTypeMap.GetMimeType(labelAsExtension) != "application/octet-stream")
+                return baseName + labelAsExtension;
+
+            return baseName + (SniffExtension(content) ?? ".bin");
         }
 
         internal static string SniffExtension(byte[] c)
