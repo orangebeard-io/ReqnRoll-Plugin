@@ -1,0 +1,31 @@
+{
+  "testSets": {
+    "Reqnroll Plugin Unit Tests": {
+      "suites": [
+        {
+          "name": "Binary attachment helpers",
+          "tests": [
+            "A call without a binary argument is not treated as an attachment",
+            "Null args are not treated as an attachment",
+            "A byte array argument is extracted as attachment content",
+            "A string after the binary argument is used as the file name",
+            "A string before the binary argument stays a format argument",
+            "A blank file name is ignored",
+            "A stream is read from the start even if already consumed",
+            "Default file name for PDF content gets a pdf extension",
+            "Default file name for label pdf with unknown content still gets pdf extension",
+            "Default file name for unknown content falls back to bin",
+            "Default file name keeps an existing extension",
+            "Default file name sanitizes invalid characters and empty labels",
+            "Content sniffing detects PNG",
+            "Content sniffing detects JPG",
+            "Content sniffing detects ZIP",
+            "Content sniffing returns nothing for short content",
+            "Message formatting applies arguments and survives a bad format string"
+          ]
+        }
+      ],
+      "lastReported": "2026-11-04T09:49:09Z"
+    }
+  }
+}
